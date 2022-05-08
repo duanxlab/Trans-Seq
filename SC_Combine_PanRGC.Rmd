@@ -1,0 +1,140 @@
+---
+title: "Combine PanRGC tracing datasets"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+The allpan dataset created by the top portion of this code is save in my documents
+
+```{r}
+library(Seurat)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(sctransform)
+
+```
+
+```{r}
+data_dir <- "./PanRGC_3"
+data <- Read10X(data.dir = data_dir)
+
+PanRGC_3 <- CreateSeuratObject(counts = data, project= "PanRGC_3", min.cells= 3, min.features = 400)
+PanRGC_3$batch <- "PanRGC_3"
+
+
+PanRGC_3[["percent.mito"]] <- PercentageFeatureSet(PanRGC_3, pattern = "^mt-", assay= "RNA")
+
+PanRGC_3_syt1 <- subset(PanRGC_3,subset = percent.mito <30)
+PanRGC_3_syt1 <- subset(PanRGC_3_syt1,subset = Syt1 > 0 | Snap25 >0)
+
+PanRGC_3_syt1 <- SCTransform(PanRGC_3_syt1, vars.to.regress = "percent.mito", verbose = FALSE)
+
+PanRGC_3_syt1 <- RunPCA(PanRGC_3_syt1, verbose = FALSE)
+PanRGC_3_syt1 <- RunUMAP(PanRGC_3_syt1, dims = 1:30, verbose = FALSE)
+
+PanRGC_3_syt1 <- FindNeighbors(PanRGC_3_syt1, dims = 1:30, verbose = FALSE)
+PanRGC_3_syt1 <- FindClusters(PanRGC_3_syt1, verbose = FALSE)
+DimPlot(PanRGC_3_syt1, label = TRUE) + NoLegend()
+FeaturePlot(PanRGC_3_syt1, c("Slc17a6", "Gad2", "Snap25", "Syt1"), label=TRUE) + NoLegend()
+PanRGC_3_syt1 <- SubsetData(PanRGC_3_syt1,ident.use = c(12,6,8))
+
+
+```
+
+```{r}
+data_dir <- "./PanRGC_2"
+data <- Read10X(data.dir = data_dir)
+
+PanRGC_2 <- CreateSeuratObject(counts = data, project= "PanRGC_2", min.cells= 3, min.features = 400)
+PanRGC_2$batch <- "PanRGC_2"
+
+PanRGC_2[["percent.mito"]] <- PercentageFeatureSet(PanRGC_2, pattern = "^mt-", assay= "RNA")
+PanRGC_2 <- subset(PanRGC_2,subset = percent.mito <30)
+
+
+PanRGC_2_syt1 <- subset(PanRGC_2,subset = Syt1 > 0 | Snap25 >0)
+
+PanRGC_2_syt1 <- SCTransform(PanRGC_2_syt1, vars.to.regress = "percent.mito", verbose = FALSE)
+PanRGC_2_syt1 <- RunPCA(PanRGC_2_syt1, verbose = FALSE)
+PanRGC_2_syt1 <- RunUMAP(PanRGC_2_syt1, dims = 1:30, verbose = FALSE)
+
+PanRGC_2_syt1 <- FindNeighbors(PanRGC_2_syt1, dims = 1:30, verbose = FALSE)
+PanRGC_2_syt1 <- FindClusters(PanRGC_2_syt1, verbose = FALSE)
+DimPlot(PanRGC_2_syt1, label = TRUE) + NoLegend()
+FeaturePlot(PanRGC_2_syt1, c("Slc17a6", "Gad2", "Snap25", "Syt1"), label=TRUE) + NoLegend()
+PanRGC_2_syt1 <- SubsetData(PanRGC_2_syt1,ident.use = c(14,5,8))
+
+
+```
+
+```{r}
+data_dir <- "./PanRGC_1"
+data <- Read10X(data.dir = data_dir)
+
+PanRGC_1 <- CreateSeuratObject(counts = data, project= "PanRGC_1", min.cells= 3, min.features = 400)
+PanRGC_1$batch <- "PanRGC_1"
+
+PanRGC_1[["percent.mito"]] <- PercentageFeatureSet(PanRGC_1, pattern = "^mt-", assay= "RNA")
+PanRGC_1 <- subset(PanRGC_1,subset = percent.mito <30)
+
+PanRGC_1_syt1 <- subset(PanRGC_1,subset = Syt1 > 0 | Snap25 >0)
+
+PanRGC_1_syt1 <- SCTransform(PanRGC_1_syt1, vars.to.regress = "percent.mito", verbose = FALSE)
+
+PanRGC_1_syt1 <- RunPCA(PanRGC_1_syt1, verbose = FALSE)
+PanRGC_1_syt1 <- RunUMAP(PanRGC_1_syt1, dims = 1:30, verbose = FALSE)
+
+PanRGC_1_syt1 <- FindNeighbors(PanRGC_1_syt1, dims = 1:30, verbose = FALSE)
+PanRGC_1_syt1 <- FindClusters(PanRGC_1_syt1, verbose = FALSE)
+DimPlot(PanRGC_1_syt1, label = TRUE) + NoLegend()
+FeaturePlot(PanRGC_1_syt1, c("Slc17a6", "Gad2", "Snap25", "Syt1"), label=TRUE) + NoLegend()
+PanRGC_1_syt1 <- SubsetData(PanRGC_1_syt1,ident.use = c(10,11,5,14,8))
+
+```
+
+```{r}
+reference.list <- c(PanRGC_1_syt1, PanRGC_2_syt1, PanRGC_3_syt1)
+
+for (i in 1:length(reference.list)) {
+    reference.list[[i]] <- SCTransform(reference.list[[i]], verbose = FALSE)
+}
+
+reference.features <- SelectIntegrationFeatures(object.list = reference.list, nfeatures = 3000)
+options(future.globals.maxSize = 1000 * 1024^2)
+reference.list <- PrepSCTIntegration(object.list = reference.list, anchor.features = reference.features, 
+    verbose = FALSE)
+
+
+reference.anchors <- FindIntegrationAnchors(object.list = reference.list, normalization.method = "SCT", 
+    anchor.features = reference.features, verbose = FALSE)
+
+allpan <- IntegrateData(anchorset = reference.anchors, normalization.method = "SCT", 
+    verbose = FALSE)
+
+```
+
+
+```{r}
+allpan_slcgad <- subset(allpan,subset = Gad2 > 0 | Gad1 >0| Slc17a6 >0)
+allpan_slcgad <- RunPCA(object = allpan_slcgad, features = c("Gad2", "Slc17a6", "Tac1", "Cdh7", "Npnt", "Cbln2"))
+
+allpan_slcgad <- FindNeighbors(allpan_slcgad, dims = 1:15)
+allpan_slcgad <- FindClusters(allpan_slcgad, resolution = 0.8)
+allpan_slcgad <- RunUMAP(allpan_slcgad, dims = 1:15)
+```
+
+
+```{r}
+DimPlot(allpan_slcgad, reduction = "umap", label= FALSE)
+```
+
+```{r}
+allpan_slcgad.markers <- FindAllMarkers(allpan_slcgad, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+allpan_slcgad.markers %>% group_by(cluster) %>% top_n(n = 2, wt = avg_logFC)
+```
