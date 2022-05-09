@@ -9,6 +9,9 @@ This page contains R code and processed data for further data exploration.
 
 Processed scRNA-Seq superior colliculus data as a Seurat object is available to download [here](https://ucsf.box.com/shared/static/txsu83ydsuxfpbvf8ns9d5x65kq0zl61.rdata).
 
+Processed scRNA-Seq superior colliculus data for excitatory neurons recovered by RGC-Cre line specific tracing is available to download [here](https://ucsf.box.com/shared/static/m3ltqfiofak9ayuj7bb1sbw5eay0qgxq.rdata).
+
+
 Code for data integration using Seurat is contained within `SC_Combine_PanRGC.Rmd`
 
 
